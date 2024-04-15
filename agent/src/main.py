@@ -7,7 +7,6 @@ import config
 
 
 def connect_mqtt(broker, port):
-    """Create MQTT client"""
     print(f"CONNECT TO {broker}:{port}")
 
     def on_connect(client, userdata, flags, rc):
@@ -15,7 +14,7 @@ def connect_mqtt(broker, port):
             print(f"Connected to MQTT Broker ({broker}:{port})!")
         else:
             print("Failed to connect {broker}:{port}, return code %d\n", rc)
-            exit(rc)  # Stop execution
+            exit(rc)
 
     client = mqtt_client.Client()
     client.on_connect = on_connect
@@ -44,7 +43,7 @@ def run():
     # Prepare mqtt client
     client = connect_mqtt(config.MQTT_BROKER_HOST, config.MQTT_BROKER_PORT)
     # Prepare datasource
-    datasource = FileDatasource("data/data.csv", "data/gps_data.csv")
+    datasource = FileDatasource("data/accelerometer.csv", "data/gps.csv", "data/parking.csv")
     # Infinity publish data
     publish(client, config.MQTT_TOPIC, datasource, config.DELAY)
 
