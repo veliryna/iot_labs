@@ -21,7 +21,7 @@ class FileDatasource:
 
         with open(self.accelerometer_file) as file:
             entries = [line.rstrip() for line in file]
-            entries = entries[1:] # column names
+            entries = entries[1:] # minus column names
             self.accelerometer_data = entries
 
         with open(self.gps_file) as file:
@@ -39,7 +39,7 @@ class FileDatasource:
         data = AggregatedData(
             Accelerometer(1, 2, 3),
             Gps(4, 5),
-            Parking(25, Gps(4, 5)),
+            Parking(20, Gps(4, 5)),
             datetime.now(),
             config.USER_ID,
         )
