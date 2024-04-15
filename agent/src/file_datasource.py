@@ -14,24 +14,25 @@ class FileDatasource:
         gps_filename: str,
         parking_filename: str
     ) -> None:
-        self.accelerometer_filename = accelerometer_filename
-        self.gps_filename = gps_filename
-        self.parking_filename = parking_filename
+        
+        self.accelerometer_file = accelerometer_filename
+        self.gps_file = gps_filename
+        self.parking_file = parking_filename
 
-        with open(self.accelerometer_filename) as file:
-            lines = [line.rstrip() for line in file]
-            lines = lines[1:]
-            self.accelerometer_lines = lines
+        with open(self.accelerometer_file) as file:
+            entries = [line.rstrip() for line in file]
+            entries = entries[1:] # column names
+            self.accelerometer_data = entries
 
-        with open(self.gps_filename) as file:
-            lines = [line.rstrip() for line in file]
-            lines = lines[1:]
-            self.gps_lines = lines
+        with open(self.gps_file) as file:
+            entries = [line.rstrip() for line in file]
+            entries = entries[1:]
+            self.gps_data = entries
 
-        with open(self.parking_filename) as file:
-            lines = [line.rstrip() for line in file]
-            lines = lines[1:]
-            self.parking_lines = lines
+        with open(self.parking_file) as file:
+            entries = [line.rstrip() for line in file]
+            entries = entries[1:] 
+            self.parking_data = entries
 
     
     def read(self) -> AggregatedData:
@@ -43,41 +44,40 @@ class FileDatasource:
             config.USER_ID,
         )
 
-        if self.is_being_read == True:
-            if (self.accelerometer_line_n > len(self.accelerometer_lines) - 1):
-                self.accelerometer_line_n = 0
+        if self.data_is_reading == True:
+            if (self.acc_line_number > len(self.accelerometer_data) - 1):
+                self.acc_line_number = 0
                 
-            if (self.gps_line_n > len(self.gps_lines) - 1):
-                self.gps_line_n = 0
+            if (self.gps_line_number > len(self.gps_data) - 1):
+                self.gps_line_number = 0
             
-            if (self.parking_line_n > len(self.parking_lines) - 1):
-                self.parking_line_n = 0
+            if (self.park_line_number > len(self.parking_data) - 1):
+                self.park_line_number = 0
 
-            acceleration = self.accelerometer_lines[self.accelerometer_line_n].split(',')
-            gps = self.gps_lines[self.gps_line_n].split(',')
-            parking = self.parking_lines[self.parking_line_n].split(',')
-            
+            acceleration = self.accelerometer_data[self.acc_line_number].split(',')
             x, y, z = acceleration
             data.accelerometer = Accelerometer(x, y, z)
+
+            gps = self.gps_data[self.gps_line_number].split(',')
+            lat_gps, long_gps = gps
+            data.gps = Gps(long_gps, lat_gps)
+
+            parking = self.parking_data[self.park_line_number].split(',')
+            long_park, lat_park, empty_count = parking
+            data.parking = Parking(empty_count, Gps(long_park, lat_park))
             
-            lat, long = gps
-            data.gps = Gps(long, lat)
-            
-            long, lat, empty_count = parking
-            data.parking = Parking(empty_count, Gps(long, lat))
-            
-            self.accelerometer_line_n += 1
-            self.gps_line_n += 1
-            self.parking_line_n +=1
+            self.acc_line_number += 1
+            self.gps_line_number += 1
+            self.park_line_number +=1
         
         return data
     
     def startReading(self, *args, **kwargs):
-        self.is_being_read = True
-        self.accelerometer_line_n = 0
-        self.gps_line_n = 0
-        self.parking_line_n = 0
+        self.data_is_reading = True
+        self.acc_line_number = 0
+        self.gps_line_number = 0
+        self.park_line_number = 0
 
     
     def stopReading(self, *args, **kwargs):
-        self.is_being_read = False
+        self.data_is_reading = False
