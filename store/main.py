@@ -128,13 +128,18 @@ async def send_data_to_subscribers(user_id: int, data):
 
 @app.post("/processed_agent_data/")
 async def create_processed_agent_data(data: List[ProcessedAgentData]):
+    data_to_insert = [] 
     with SessionLocal() as db:
         for data_item in data:
             values = get_values_from_data(data_item)
             q = processed_agent_data.insert().values(values)
             db.execute(q)
             db.commit()
-    await send_data_to_subscribers(data[0].agent_data.user_id, data)
+            data_to_insert.append(values)
+    if (len(data_to_insert) > 0):
+        await send_data_to_subscribers(data[0].agent_data.user_id, data)
+
+
 
 
 @app.get(
@@ -178,8 +183,8 @@ def update_processed_agent_data(processed_agent_data_id: int, data: ProcessedAge
 def delete_processed_agent_data(processed_agent_data_id: int):
     with SessionLocal() as db:
         record = find_record_in_db(processed_agent_data_id, db)
-        query = delete(processed_agent_data).where(processed_agent_data.c.id == processed_agent_data_id)
-        db.execute(query)
+        q = delete(processed_agent_data).where(processed_agent_data.c.id == processed_agent_data_id)
+        db.execute(q)
         db.commit()
         return ProcessedAgentDataInDB(**record._asdict())
 
